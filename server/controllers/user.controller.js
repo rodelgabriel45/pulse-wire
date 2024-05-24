@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
@@ -19,6 +21,32 @@ export const getUserProfile = async (req, res, next) => {
 
 export const getSuggestedUsers = async (req, res, next) => {
   try {
+    const currentUserId = req.user.id;
+
+    // const loggedUser = await User.findById(req.user.id);
+
+    const usersFollowedByCurrentUser = await User.findById(
+      currentUserId
+    ).select("following");
+
+    const users = await User.aggregate([
+      {
+        $match: {
+          _id: {
+            $ne: mongoose.Types.ObjectId.createFromHexString(currentUserId),
+          },
+        },
+      },
+      { $sample: { size: 10 } },
+    ]);
+
+    const filteredUsers = users.filter(
+      (user) => !usersFollowedByCurrentUser.following.includes(user._id)
+    );
+    const suggestedUsers = filteredUsers.slice(0, 4);
+
+    suggestedUsers.forEach((user) => (user.password = null));
+    res.status(200).json(suggestedUsers);
   } catch (error) {
     next(error);
   }
