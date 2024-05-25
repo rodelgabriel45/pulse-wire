@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  padding-bottom: 20px;
+  padding-left: 150px;
+  padding-right: 150px;
+}
