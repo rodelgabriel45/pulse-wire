@@ -6,6 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
+import postRoutes from "./routes/post.route.js";
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -23,6 +24,7 @@ cloudinary.config({
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/post", postRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
