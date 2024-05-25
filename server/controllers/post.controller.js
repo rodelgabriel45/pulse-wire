@@ -69,10 +69,18 @@ export const likeUnlikePost = async (req, res, next) => {
     if (userLikedPost) {
       // Unlike the post
       await Post.updateOne({ _id: postId }, { $pull: { likes: req.user.id } });
+      await User.updateOne(
+        { _id: req.user.id },
+        { $pull: { likedPosts: post._id } }
+      );
       res.status(200).json("Post unliked successfully");
     } else {
       // Like the post
       post.likes.push(req.user.id);
+      await User.updateOne(
+        { _id: req.user.id },
+        { $push: { likedPosts: post._id } }
+      );
       await post.save();
 
       const newNotif = new Notification({
@@ -126,6 +134,81 @@ export const deletePost = async (req, res, next) => {
 
     await Post.findByIdAndDelete(req.params.id);
     res.status(200).json("Post deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getLikedPosts = async (req, res, next) => {
+  try {
+    if (req.user.id !== req.params.id)
+      return next(errorHandler(400, "Unathorized"));
+
+    const user = await User.findById(req.params.id);
+    if (!user) return next(errorHandler(404, "User not found"));
+
+    const likedPosts = await Post.find({ _id: { $in: user.likedPosts } })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+
+    res.status(200).json(likedPosts);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getFollowingPosts = async (req, res, next) => {
+  try {
+    if (req.user.id !== req.params.id)
+      return next(errorHandler(400, "Unathorized"));
+
+    const user = await User.findById(req.params.id);
+    if (!user) return next(errorHandler(404, "User not found"));
+
+    const following = user.following;
+
+    const followingPosts = await Post.find({ user: { $in: following } })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+
+    res.status(200).json(followingPosts);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserPosts = async (req, res, next) => {
+  try {
+    const username = req.params.username;
+
+    const user = await User.findOne({ username });
+    if (!user) return next(errorHandler(404, "User not found"));
+
+    const posts = await Post.find({ user: user._id })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+
+    res.status(200).json(posts);
   } catch (error) {
     next(error);
   }

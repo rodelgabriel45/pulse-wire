@@ -5,12 +5,18 @@ import {
   createPost,
   deletePost,
   getAllPosts,
+  getFollowingPosts,
+  getLikedPosts,
+  getUserPosts,
   likeUnlikePost,
 } from "../controllers/post.controller.js";
 
 const router = express.Router();
 
 router.get("/all", verifyUser, getAllPosts);
+router.get("/likes/:id", verifyUser, getLikedPosts);
+router.get("/following/:id", verifyUser, getFollowingPosts);
+router.get("/user/:username", verifyUser, getUserPosts);
 router.post("/create", verifyUser, createPost);
 router.post("/like/:id", verifyUser, likeUnlikePost);
 router.post("/comment/:id", verifyUser, commentOnPost);
