@@ -13,6 +13,6 @@ const router = express.Router();
 router.get("/profile/:username", getUserProfile);
 router.get("/suggested", verifyUser, getSuggestedUsers);
 router.post("/follow/:id", verifyUser, followUnfollowUser);
-router.get("/update", verifyUser, updateUser);
+router.put("/update/:id", verifyUser, updateUser);
 
 export default router;

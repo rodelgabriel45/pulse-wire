@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import { v2 as cloudinary } from "cloudinary";
+import bcryptjs from "bcryptjs";
+import validator from "email-validator";
 
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
@@ -101,6 +104,107 @@ export const followUnfollowUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
   try {
+    if (req.user.id !== req.params.id)
+      return next(errorHandler(401, "You can only update your own account!"));
+
+    const {
+      fullName,
+      username,
+      currentPassword,
+      email,
+      newPassword,
+      bio,
+      link,
+    } = req.body;
+    let { profileImg, coverImg } = req.body;
+    let hashedNewPassword;
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) return next(errorHandler(404, "User not found"));
+
+    if (username) {
+      if (username.length < 6 || username.length > 12) {
+        return next(
+          errorHandler(400, "Username must be at between 6 and 12 characters.")
+        );
+      }
+    }
+
+    if (email) {
+      const validEmail = validator.validate(req.body.email);
+      if (!validEmail) {
+        return next(errorHandler(400, "Please enter a valid email address."));
+      }
+    }
+
+    if ((!currentPassword && newPassword) || (!newPassword && currentPassword))
+      return next(
+        errorHandler(
+          400,
+          "Please provide both current password and new password."
+        )
+      );
+
+    if (currentPassword && newPassword) {
+      const isMatch = bcryptjs.compareSync(currentPassword, user.password);
+      if (!isMatch)
+        return next(errorHandler(400, "Current password is incorrect"));
+
+      if (newPassword.length < 6)
+        return next(
+          errorHandler(400, "Password must be at least 6 characters")
+        );
+
+      hashedNewPassword = bcryptjs.hashSync(newPassword, 10);
+    }
+
+    if (profileImg) {
+      // if there is existing user profile image => destroy it in the cloudinary storage
+      if (user.profileImg) {
+        await cloudinary.uploader.destroy(
+          user.profileImg.split("/").pop().split(".")[0]
+        );
+      }
+
+      // Upload new profile image to cloudinary
+      const uploadedResponse = await cloudinary.uploader.upload(profileImg);
+      profileImg = uploadedResponse.url;
+    }
+
+    if (coverImg) {
+      // if there is existing user cover image => destroy it in the cloudinary storage
+      if (user.coverImg) {
+        await cloudinary.uploader.destroy(
+          user.coverImg.split("/").pop().split(".")[0]
+        );
+      }
+
+      // Upload new profile image to cloudinary
+      const uploadedResponse = await cloudinary.uploader.upload(coverImg);
+      coverImg = uploadedResponse.url;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          username,
+          fullName,
+          password: hashedNewPassword,
+          email,
+          profileImg,
+          coverImg,
+          bio,
+          link,
+        },
+      },
+      { new: true }
+    );
+
+    const { password: pass, ...rest } = updatedUser._doc;
+
+    res.status(200).json(rest);
   } catch (error) {
     next(error);
   }
