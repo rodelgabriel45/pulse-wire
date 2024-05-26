@@ -1,11 +1,13 @@
 import { Link, Outlet } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
 import { useQuery } from "@tanstack/react-query";
+import useFollow from "../../hooks/useFollow";
+import LoadingSpinner from "./LoadingSpinner";
 
 const RightPanel = () => {
   // Query for fetching suggested users
   const { data: suggestedUsers, isLoading } = useQuery({
-    queryKey: ["suggested"],
+    queryKey: ["suggestedUsers"],
     queryFn: async () => {
       try {
         const res = await fetch("/api/user/suggested");
@@ -21,6 +23,8 @@ const RightPanel = () => {
       }
     },
   });
+
+  const { follow, isPending } = useFollow();
 
   if (suggestedUsers?.length === 0) return <div className="md:w-64 w-0"></div>;
 
@@ -66,10 +70,15 @@ const RightPanel = () => {
                   </div>
                   <div>
                     <button
-                      className="btn bg-white text-black hover:bg-gray-400 hover:opacity-90 rounded-full btn-sm"
-                      onClick={(e) => e.preventDefault()}
+                      type="button"
+                      disabled={isPending}
+                      className="btn bg-white text-black hover:bg-gray-400 hover:opacity-90 rounded-full btn-sm disabled:opacity-80"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        follow(user._id);
+                      }}
                     >
-                      Follow
+                      {isPending ? <LoadingSpinner size="sm" /> : "Follow"}
                     </button>
                   </div>
                 </Link>
