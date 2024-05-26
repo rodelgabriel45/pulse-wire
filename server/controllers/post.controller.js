@@ -165,10 +165,7 @@ export const getLikedPosts = async (req, res, next) => {
 
 export const getFollowingPosts = async (req, res, next) => {
   try {
-    if (req.user.id !== req.params.id)
-      return next(errorHandler(400, "Unathorized"));
-
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.user.id);
     if (!user) return next(errorHandler(404, "User not found"));
 
     const following = user.following;
