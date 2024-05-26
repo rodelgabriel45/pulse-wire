@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 import PulseSvg from "../components/svgs/PulseSVG";
 
@@ -7,6 +8,8 @@ import { MdOutlineMail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { MdPassword } from "react-icons/md";
 import { MdDriveFileRenameOutline } from "react-icons/md";
+import toast from "react-hot-toast";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -16,16 +19,45 @@ const Signup = () => {
     password: "",
   });
 
+  const {
+    mutate: signupMutation,
+    isError,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: async ({ email, username, fullName, password }) => {
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, username, fullName, password }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+
+        return data;
+      } catch (error) {
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("User created successfully");
+    },
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+    signupMutation(formData);
   };
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const isError = false;
 
   return (
     <div className="max-w-screen-xl mx-auto flex h-screen px-10">
@@ -89,10 +121,13 @@ const Signup = () => {
               required
             />
           </label>
-          <button className="btn rounded-full btn-primary text-white">
-            Sign up
+          <button
+            disabled={isPending}
+            className="btn rounded-full btn-primary text-white disabled:opacity-80"
+          >
+            {isPending ? <LoadingSpinner /> : "Sign up"}
           </button>
-          {isError && <p className="text-red-500">Something went wrong</p>}
+          {isError && <p className="text-red-500">{error.message || error}</p>}
         </form>
         <div className="flex flex-col lg:w-2/3 gap-2 mt-4">
           <p className="text-white text-lg">Already have an account?</p>

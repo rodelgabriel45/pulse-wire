@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  padding-bottom: 20px;
-  padding-left: 150px;
-  padding-right: 150px;
+@media screen and (min-width: 992px) {
+  body {
+    padding-bottom: 20px;
+    padding-left: 150px;
+    padding-right: 150px;
+  }
 }
