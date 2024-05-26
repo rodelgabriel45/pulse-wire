@@ -15,6 +15,7 @@ const Post = ({ post }) => {
   const { data: authUser } = useAuthUser();
   const queryClient = useQueryClient();
 
+  // Mutation for deleting post
   const {
     mutate: deletePost,
     isPending,
@@ -45,8 +46,39 @@ const Post = ({ post }) => {
     },
   });
 
+  // Mutation for liking post
+  const { mutate: likePost, isPending: isLiking } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/post/like/${post._id}`, {
+          method: "POST",
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+
+        return data;
+      } catch (error) {
+        toast.error(error.message);
+      }
+    },
+    onSuccess: (updatedLikes) => {
+      // Update the cache directly for this post so it does not refetch the whole posts
+      queryClient.setQueryData(["posts"], (prevData) => {
+        return prevData.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, likes: updatedLikes };
+          }
+          return p;
+        });
+      });
+    },
+  });
+
   const postOwner = post.user;
-  const isLiked = false;
+  const isLiked = post.likes.includes(authUser?._id);
 
   const isMyPost = authUser?._id === post.user._id;
 
@@ -68,7 +100,9 @@ const Post = ({ post }) => {
     e.preventDefault();
   };
 
-  const handleLikePost = () => {};
+  const handleLikePost = () => {
+    likePost();
+  };
 
   return (
     <>
@@ -131,7 +165,6 @@ const Post = ({ post }) => {
                   {post.comments.length}
                 </span>
               </div>
-              {/* We're using Modal Component from DaisyUI */}
               <dialog
                 id={`comments_modal${post._id}`}
                 className="modal border-none outline-none"
@@ -181,11 +214,7 @@ const Post = ({ post }) => {
                       onChange={(e) => setComment(e.target.value)}
                     />
                     <button className="btn btn-primary rounded-full btn-sm text-white px-4">
-                      {isCommenting ? (
-                        <span className="loading loading-spinner loading-md"></span>
-                      ) : (
-                        "Post"
-                      )}
+                      {isCommenting ? <LoadingSpinner size="sm" /> : "Post"}
                     </button>
                   </form>
                 </div>
@@ -203,16 +232,17 @@ const Post = ({ post }) => {
                 className="flex gap-1 items-center group cursor-pointer"
                 onClick={handleLikePost}
               >
-                {!isLiked && (
+                {isLiking && <LoadingSpinner size="sm" />}
+                {!isLiked && !isLiking && (
                   <FaRegHeart className="w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500" />
                 )}
-                {isLiked && (
+                {isLiked && !isLiking && (
                   <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500 " />
                 )}
 
                 <span
-                  className={`text-sm text-slate-500 group-hover:text-pink-500 ${
-                    isLiked ? "text-pink-500" : ""
+                  className={`text-sm group-hover:text-pink-500 ${
+                    isLiked ? "text-pink-500" : "text-slate-500"
                   }`}
                 >
                   {post.likes.length}
