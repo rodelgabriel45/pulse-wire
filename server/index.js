@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 
 dotenv.config();
-app.use(express.json());
+app.use(express.json({ limit: "3mb" }));
 app.use(cookieParser());
 
 cloudinary.config({
@@ -30,6 +30,15 @@ app.use("/api/notification", notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  // if the req payload exceeds 3mb
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({
+      success: false,
+      statusCode: 413,
+      message: "Payload too large. Maximum size is 3MB.",
+    });
+  }
+
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
 
