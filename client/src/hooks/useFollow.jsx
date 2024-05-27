@@ -26,7 +26,6 @@ const useFollow = () => {
         queryClient.invalidateQueries({ queryKey: ["suggestedUsers"] }),
         queryClient.invalidateQueries({ queryKey: ["authUser"] }),
       ]);
-      toast.success("User followed successfully");
     },
   });
   return { follow, isPending };
