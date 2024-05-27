@@ -5,8 +5,11 @@ import { IoCloseSharp } from "react-icons/io5";
 import useAuthUser from "../../hooks/useAuthUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { MdClose } from "react-icons/md";
+import EmojiPicker from "emoji-picker-react";
 
 const CreatePost = () => {
+  const [showPicker, setShowPicker] = useState(false);
   const [text, setText] = useState("");
   const [img, setImg] = useState(null);
   const imgRef = useRef(null);
@@ -65,6 +68,13 @@ const CreatePost = () => {
     }
   };
 
+  const addEmoji = (emojiData, event) => {
+    if (emojiData) {
+      console.log("went here");
+      setText((prevText) => prevText + emojiData.emoji);
+    }
+  };
+
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">
       <div className="avatar">
@@ -101,7 +111,16 @@ const CreatePost = () => {
               className="fill-primary w-6 h-6 cursor-pointer"
               onClick={() => imgRef.current.click()}
             />
-            <BsEmojiSmileFill className="fill-primary w-5 h-5 cursor-pointer" />
+
+            <div onClick={() => setShowPicker(!showPicker)}>
+              {showPicker ? (
+                <MdClose className="w-5 h-5 cursor-pointer" />
+              ) : (
+                <BsEmojiSmileFill className="fill-primary w-5 h-5 cursor-pointer" />
+              )}
+            </div>
+
+            {showPicker && <EmojiPicker onEmojiClick={addEmoji} />}
           </div>
           <input
             type="file"

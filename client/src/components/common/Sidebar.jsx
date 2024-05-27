@@ -18,8 +18,6 @@ const Sidebar = () => {
   };
   const { data: unreadNotifs } = useGetUnreadNotifs();
 
-  console.log(unreadNotifs?.length);
-
   const queryClient = useQueryClient();
 
   const {
