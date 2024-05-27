@@ -18,6 +18,7 @@ const Posts = ({ feedType }) => {
 
   const POST_ENDPOINT = getPostEndpoint();
 
+  // Query for fetching posts
   const {
     data: posts,
     isLoading,
