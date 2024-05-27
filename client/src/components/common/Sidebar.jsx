@@ -8,6 +8,7 @@ import { BiLogOut } from "react-icons/bi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import useAuthUser from "../../hooks/useAuthUser";
+import useGetUnreadNotifs from "../../hooks/useGetUnreadNotifs";
 
 const Sidebar = () => {
   const data = {
@@ -15,6 +16,9 @@ const Sidebar = () => {
     username: "johndoe",
     profileImg: "/avatars/boy1.png",
   };
+  const { data: unreadNotifs } = useGetUnreadNotifs();
+
+  console.log(unreadNotifs?.length);
 
   const queryClient = useQueryClient();
 
@@ -72,8 +76,23 @@ const Sidebar = () => {
                 to="/notifications"
                 className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
               >
-                <IoNotifications className="w-6 h-6" />
-                <span className="text-lg hidden md:block">Notifications</span>
+                <div className="relative">
+                  <IoNotifications className="w-6 h-6 " />
+                  {unreadNotifs?.length > 0 && (
+                    <div className="badge  bg-sky-500 md:hidden rounded-full absolute inset-y-0 -top-1 left-2.5">
+                      {unreadNotifs?.length}
+                    </div>
+                  )}
+                </div>
+
+                <span className="text-lg hidden md:flex gap-2 items-center">
+                  Notifications
+                  {unreadNotifs?.length > 0 && (
+                    <div className="badge bg-sky-500 rounded-full">
+                      {unreadNotifs?.length}
+                    </div>
+                  )}
+                </span>
               </Link>
             </li>
 

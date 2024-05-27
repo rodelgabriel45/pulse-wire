@@ -5,8 +5,6 @@ import LoadingSpinner from "./common/LoadingSpinner";
 const ProtectedRoute = ({ redirectPath = "/login" }) => {
   const { data: authUser, isLoading, isError } = useAuthUser();
 
-  console.log(authUser);
-
   if (isLoading) {
     return (
       <div className="h-screen flex justify-center items-center">

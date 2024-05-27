@@ -5,8 +5,6 @@ import Posts from "../components/common/Posts";
 import ProfileHeaderSkeleton from "../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "../components/EditProfileModal";
 
-import { POSTS } from "../utils/db/dummy";
-
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
@@ -27,6 +25,16 @@ const Profile = () => {
   const { data: authUser } = useAuthUser();
   const { follow, isPending } = useFollow();
   const { updateProfile, isUpdatingProfile } = useUpdateProfile();
+  const { data: posts } = useQuery({ queryKey: ["posts"] });
+  const dataToSend = {};
+
+  if (profileImg) {
+    dataToSend.profileImg = profileImg;
+  }
+
+  if (coverImg) {
+    dataToSend.coverImg = coverImg;
+  }
 
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
@@ -93,7 +101,11 @@ const Profile = () => {
                 <div className="flex flex-col">
                   <p className="font-bold text-lg">{user?.fullName}</p>
                   <span className="text-sm text-slate-500">
-                    {POSTS?.length} posts
+                    {posts?.length === 0
+                      ? "No post"
+                      : `${posts?.length} ${
+                          posts?.length > 1 ? "posts" : "post"
+                        }`}
                   </span>
                 </div>
               </div>
@@ -166,10 +178,7 @@ const Profile = () => {
                     disabled={isUpdatingProfile}
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2 disabled:opacity-80"
                     onClick={async () => {
-                      await updateProfile({
-                        coverImg,
-                        profileImg,
-                      });
+                      await updateProfile(dataToSend);
                       setProfileImg(null);
                       setCoverImg(null);
                     }}
@@ -198,7 +207,7 @@ const Profile = () => {
                       <>
                         <FaLink className="w-3 h-3 text-slate-500" />
                         <a
-                          href="https://youtube.com/@asaprogrammer_"
+                          href={user?.link}
                           target="_blank"
                           rel="noreferrer"
                           className="text-sm text-blue-500 hover:underline"

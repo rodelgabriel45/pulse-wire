@@ -75,6 +75,7 @@ const Post = ({ post }) => {
           return p;
         });
       });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotifs"] });
     },
   });
 

@@ -11,7 +11,11 @@ const Notification = () => {
   const queryClient = useQueryClient();
 
   // Query for fetching notifications
-  const { data: notifications, isLoading } = useQuery({
+  const {
+    data: notifications,
+    isLoading,
+    isSuccess,
+  } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
       try {
@@ -28,6 +32,10 @@ const Notification = () => {
       }
     },
   });
+
+  if (isSuccess) {
+    queryClient.invalidateQueries({ queryKey: ["unreadNotifs"] });
+  }
 
   // Mutation for deleting all notifications
   const { mutate: deleteNotifs } = useMutation({
