@@ -147,8 +147,8 @@ export const deletePost = async (req, res, next) => {
 
 export const getLikedPosts = async (req, res, next) => {
   try {
-    if (req.user.id !== req.params.id)
-      return next(errorHandler(400, "Unathorized"));
+    // if (req.user.id !== req.params.id)
+    //   return next(errorHandler(400, "Unathorized"));
 
     const user = await User.findById(req.params.id);
     if (!user) return next(errorHandler(404, "User not found"));
