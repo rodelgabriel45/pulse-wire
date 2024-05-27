@@ -9,6 +9,7 @@ import useAuthUser from "../../hooks/useAuthUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
+import { formatPostDate } from "../../utils/date/formatDate";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
@@ -77,14 +78,39 @@ const Post = ({ post }) => {
     },
   });
 
+  // Mutation for commenting on post
+  const { mutate: commentPost, isPending: isCommenting } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/post/comment/${post._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: comment }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+
+        return data;
+      } catch (error) {
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Comment posted successfully");
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+
   const postOwner = post.user;
   const isLiked = post.likes.includes(authUser?._id);
 
   const isMyPost = authUser?._id === post.user._id;
 
-  const formattedDate = "1h";
-
-  const isCommenting = false;
+  const formattedDate = formatPostDate(post.createdAt);
 
   const handleDeletePost = () => {
     const proceed = window.confirm(
@@ -98,6 +124,7 @@ const Post = ({ post }) => {
 
   const handlePostComment = (e) => {
     e.preventDefault();
+    commentPost();
   };
 
   const handleLikePost = () => {
@@ -213,7 +240,10 @@ const Post = ({ post }) => {
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                     />
-                    <button className="btn btn-primary rounded-full btn-sm text-white px-4">
+                    <button
+                      disabled={isCommenting}
+                      className="btn btn-primary rounded-full btn-sm text-white px-4 disabled:opacity-80"
+                    >
                       {isCommenting ? <LoadingSpinner size="sm" /> : "Post"}
                     </button>
                   </form>
