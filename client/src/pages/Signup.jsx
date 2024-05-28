@@ -70,7 +70,9 @@ const Signup = () => {
           onSubmit={handleSubmit}
         >
           <PulseSvg className="w-24 lg:hidden fill-white" />
-          <h1 className="text-4xl font-extrabold text-white">Sign Up</h1>
+          <h1 className="text-4xl font-extrabold text-white">
+            Connect the pulse.
+          </h1>
           <label className="input input-bordered rounded flex items-center gap-2">
             <MdOutlineMail />
             <input

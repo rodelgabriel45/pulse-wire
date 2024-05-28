@@ -1,12 +1,13 @@
 {
-  "name": "chipper",
+  "name": "pulse-wire",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "nodemon server/index.js"
+    "start": "NODE_ENV=development node server/index.js",
+    "dev": "NODE_ENV=production nodemon server/index.js",
+    "build": "npm install && npm install --prefix client && npm run build --prefix client"
   },
   "keywords": [],
   "author": "",
